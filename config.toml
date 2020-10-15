@@ -1,0 +1,50 @@
+baseURL = "https://asineth.gq"
+languageCode = "en-us"
+paginate = 5
+theme = "terminal"
+title = "Asineth"
+
+[params]
+    centerTheme = true
+    contentTypeName = "post"
+    fullWidthTheme = false
+    showLanguageSelector = false
+    showLastUpdated = false
+    showMenuItems = 6
+    themeColor = "pink"
+
+[languages]
+    [languages.en]
+        copyright = ""
+        keywords = ""
+        languageName = "English"
+        menuMore = "Show more"
+        missingBackButtonLabel = "Back to home page"
+        missingContentMessage = "Page not found..."
+        owner = ""
+        readMore = "Read more"
+        readOtherPosts = "Read other posts"
+        subtitle = "Developer, security researcher."
+        title = "Asineth"
+
+[languages.en.params.logo]
+    logoHomeLink = "/"
+    logoText = "Asineth"
+
+[languages.en.menu]
+    [[languages.en.menu.main]]
+        identifier = "github"
+        name = "GitHub"
+        url = "https://github.com/asineth0"
+    [[languages.en.menu.main]]
+        identifier = "twitter"
+        name = "Twitter"
+        url = "https://twitter.com/asineth0"
+    [[languages.en.menu.main]]
+        identifier = "reddit"
+        name = "Reddit"
+        url = "https://reddit.com/u/asineth0"
+    [[languages.en.menu.main]]
+        identifier = "telegram"
+        name = "Telegram"
+        url = "https://t.me/asineth0"
