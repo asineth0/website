@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Asineth</title>
+    <link>https://asineth.me/</link>
+    <description>Recent content on Asineth</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://asineth.me/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Having School on Festivus is Evil</title>
+      <link>https://asineth.me/festivus-school/</link>
+      <pubDate>Tue, 22 Dec 2020 20:27:47 -0500</pubDate>
+      
+      <guid>https://asineth.me/festivus-school/</guid>
+      <description>Look at this young boy being oppressed during Festivus.
+ The issue In many public schools across the United States, children are being forced against their will, to attend school on the day of Festivus. This is a tragic event, that so many students&#39; holiday traditions on Festivus are being impeded and oppressed by the public school system. They&amp;rsquo;re fine with giving these same children Christmas off, so they can go consume and purchase commerical goods, but they don&amp;rsquo;t want them to celebrate Festivus, they don&amp;rsquo;t want them questioning the holiday they&amp;rsquo;re told to celebrate.</description>
+    </item>
+    
+    <item>
+      <title>Unofficial ROMs for Moto G8/G8 Power</title>
+      <link>https://asineth.me/android-rav/</link>
+      <pubDate>Mon, 14 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://asineth.me/android-rav/</guid>
+      <description>Status Both ROMs are currently very stable and I&amp;rsquo;ve used them for multiple hours with minimal or no issues. I may port Bliss or some other ROMs later.
+Downloads Last updated: 2020.09.17 @ 21:55 EDT
+ lineage-17.1-20200918-UNOFFICIAL-sofiar.zip MEGA pCloud  SHA256: ba7445fbadada6edbe12b55ecfce0d4bd2a7ca1b407a5f0a44a42b8e2eb27e99
+ PixelExperience_Plus_sofiar-10.0-20200918-0058-UNOFFICIAL.zip MEGA pCloud  SHA256: 6e6a3f050e3bf8227abf5d46a616d772515884d1c2b6256777f51518158877cb
+Flashing  Unlock bootloader  You can unlock your bootloader at Motorola&amp;rsquo;s website.
+Boot into fastbootd  Reboot your device into the bootloader by holding power + volume down.</description>
+    </item>
+    
+    <item>
+      <title>Using an Android as a SBC/Pi alternative</title>
+      <link>https://asineth.me/phone-server/</link>
+      <pubDate>Mon, 17 Aug 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://asineth.me/phone-server/</guid>
+      <description>Motivation I have old Android phones lying around and wanted to host a Minecraft server for friends. I initially thought of buying an SBC such as Pi or ODROID, instead I though to try and use an old phone instead.
+How My setup works by configuring an SSH server, a chroot with a Linux distro that supports aarch64, and configuring init scripts so that Android&amp;rsquo;s system UI gets stopped and doesn&amp;rsquo;t take up resources.</description>
+    </item>
+    
+    <item>
+      <title>Debian 10 Root on Encrypted ZFS</title>
+      <link>https://asineth.me/debian-zfs/</link>
+      <pubDate>Thu, 13 Aug 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://asineth.me/debian-zfs/</guid>
+      <description>Motivation Why would you want to use ZFS as your root filesystem?
+ Snapshots and rollbacks Send incremental snapshots over the network Datasets (i.e. /home, /var, /tmp) Copy-on-write architecture Compression to save space Checksums for data integrity, auto-repair Built-in native encryption Flexible configuration per dataset  Context ZFS is awesome, why isn&amp;rsquo;t it the default filesystem? Well, it mainly stems from one thing, and that&amp;rsquo;s licensing. ZFS is licensed under the CDDL, and the Linux kenrel is licensed under the GPL.</description>
+    </item>
+    
+    <item>
+      <title>Booting a GSI on the Pixel 1/1 XL</title>
+      <link>https://asineth.me/pixel-gsi/</link>
+      <pubDate>Fri, 24 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://asineth.me/pixel-gsi/</guid>
+      <description>Requirements  Google Pixel 1/1 XL (sailfish/marlin) A GSI system.img to flash ADB &amp;amp; Fastboot on your PC TWRP for your device  Getting a GSI There are tons of different GSIs to try out. I used the Google one.
+ Google&amp;rsquo;s Android 10 GSI Google&amp;rsquo;s Android 11 GSI phhTreble Android 10 phhTreble Android 10 + GApps phhTreble Android 10 + &amp;ldquo;Go&amp;rdquo; Gapps  Preparing the device The system_a and system_b partitions on the Pixel are too small for the GSI.</description>
+    </item>
+    
+  </channel>
+</rss>

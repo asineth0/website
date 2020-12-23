@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+      integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+      crossorigin="anonymous"
+    />
+    
+    <link rel="stylesheet" href="https://asineth.me/style.css" />
+    <title>Using an Android as a SBC/Pi alternative</title>
+  </head>
+  <body>
+    <div class="header">
+  
+  <img src="https://asineth.me/avatar.jpg" />
+  <h1>Asineth</h1>
+  <h2>Developer & tinkerer.</h2>
+  <div class="social">
+    <a class="fab fa-github" href="//github.com/asineth0"></a>
+    <a class="fab fa-reddit" href="//reddit.com/u/asineth0"></a>
+    <a class="fab fa-telegram" href="//t.me/asineth0"></a>
+    <a class="fab fa-twitter" href="//twitter.com/asineth0"></a>
+    <a class="fas fa-envelope" href="mailto:asineth@pm.me"></a>
+  </div>
+</div>
+ 
+
+<div class="content">
+  <h1>Using an Android as a SBC/Pi alternative</h1>
+  <h1 id="motivation">Motivation</h1>
+<p>I have old Android phones lying around and wanted to host a Minecraft server
+for friends. I initially thought of buying an SBC such as Pi or ODROID, instead
+I though to try and use an old phone instead.</p>
+<h1 id="how">How</h1>
+<p>My setup works by configuring an SSH server, a chroot with a Linux distro that
+supports aarch64, and configuring init scripts so that Android&rsquo;s system UI gets
+stopped and doesn&rsquo;t take up resources.</p>
+<h1 id="setup">Setup</h1>
+<p>I expect that you have an Android device and an unlocked bootloader.</p>
+<ol>
+<li>
+<p>Flash <a href="https://lineageos.org">LineageOS</a> (recommended)</p>
+</li>
+<li>
+<p>Flash <a href="https://www.xda-developers.com/how-to-install-magisk/">Magisk</a></p>
+</li>
+<li>
+<p>Install &ldquo;SSH for Magisk&rdquo; (from Magisk Manager app)</p>
+</li>
+<li>
+<p>Enable USB debugging and get a root shell</p>
+</li>
+</ol>
+<pre><code>adb shell
+su
+</code></pre><ol start="5">
+<li>Add your SSH keys</li>
+</ol>
+<pre><code>nano /data/ssh/root/.ssh/authorized_keys
+</code></pre><ol start="6">
+<li>SSH into the device</li>
+</ol>
+<pre><code>ssh root@&lt;device ip&gt;
+</code></pre><ol start="7">
+<li>Set up Alpine rootfs</li>
+</ol>
+<p>For this step, I use <a href="https://alpinelinux.org">Alpine</a> but you can use any
+distro&rsquo;s rootfs as long as it&rsquo;s compiled for aarch64.</p>
+<pre><code>mkdir -p alpine &amp;&amp; cd alpine
+curl -LO http://dl-cdn.alpinelinux.org/alpine/v3.12/releases/aarch64/alpine-minirootfs-3.12.0-aarch64.tar.gz
+tar -xzf alpine-minirootfs-3.12.0-aarch64.tar.gz
+rm -f alpine-minirootfs-3.12.0-aarch64.tar.gz
+cat &lt;&lt; ! &gt; etc/resolv.conf
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+!
+cd ..
+</code></pre><ol start="8">
+<li>Create chrot scripts</li>
+</ol>
+<p>The chroot scripts are what allow you to use the rootfs as if it were natively
+installed by mounting important filesystems.</p>
+<pre><code>nano chroot.sh
+chmod +x chroot.sh
+</code></pre><p>chroot.sh:</p>
+<pre><code>#!/bin/sh
+for i in dev dev/pts sys proc; do
+	mount | grep alpine/$i &gt; /dev/null || mount -o bind /$i alpine/$i;
+done
+chroot alpine /bin/login -f root
+</code></pre><ol start="9">
+<li>Create boot scripts (optional)</li>
+</ol>
+<p>These scripts will stop the SystemUI and other stuff Android normally has
+running, therefore freeing up RAM.</p>
+<pre><code>nano boot.sh
+chmod +x boot.sh
+</code></pre><p>boot.sh:</p>
+<pre><code>#!/bin/sh
+stop
+sysctl -w vm.drop_caches=3
+</code></pre><p>We also have to remount the system partition so we can write to it, allowing us
+to modify /init.rc to have our script run at startup.</p>
+<pre><code>mount -o remount,rw /
+nano /init.rc
+</code></pre><p>Find the line that has <code>sys.boot_completed=1</code> on it and add this under it.</p>
+<pre><code>exec u:r:magisk:s0 root root -- /system/bin/sh /data/ssh/root/boot.sh
+</code></pre><p>Once this is set up, reboot the device.</p>
+<ol start="10">
+<li>Auto-chroot on SSH login (optional)</li>
+</ol>
+<p>This can be done with SSH forced commands. In your <code>authorized_keys</code> file,
+prefix your public key with the chroot script, like this.</p>
+<pre><code>command=&quot;./chroot.sh&quot; ssh-ed25519 redacted asineth@dtop0
+</code></pre>
+</div>
+
+
+  </body>
+</html>

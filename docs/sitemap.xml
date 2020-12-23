@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://asineth.me/festivus-school/</loc>
+    <lastmod>2020-12-22T20:27:47-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://asineth.me/android-rav/</loc>
+    <lastmod>2020-09-14T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://asineth.me/phone-server/</loc>
+    <lastmod>2020-08-17T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://asineth.me/debian-zfs/</loc>
+    <lastmod>2020-08-13T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://asineth.me/pixel-gsi/</loc>
+    <lastmod>2020-07-24T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://asineth.me/</loc>
+  </url>
+  
+  <url>
+    <loc>https://asineth.me/categories/</loc>
+  </url>
+  
+  <url>
+    <loc>https://asineth.me/tags/</loc>
+  </url>
+  
+</urlset>

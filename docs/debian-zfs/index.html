@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+      integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+      crossorigin="anonymous"
+    />
+    
+    <link rel="stylesheet" href="https://asineth.me/style.css" />
+    <title>Debian 10 Root on Encrypted ZFS</title>
+  </head>
+  <body>
+    <div class="header">
+  
+  <img src="https://asineth.me/avatar.jpg" />
+  <h1>Asineth</h1>
+  <h2>Developer & tinkerer.</h2>
+  <div class="social">
+    <a class="fab fa-github" href="//github.com/asineth0"></a>
+    <a class="fab fa-reddit" href="//reddit.com/u/asineth0"></a>
+    <a class="fab fa-telegram" href="//t.me/asineth0"></a>
+    <a class="fab fa-twitter" href="//twitter.com/asineth0"></a>
+    <a class="fas fa-envelope" href="mailto:asineth@pm.me"></a>
+  </div>
+</div>
+ 
+
+<div class="content">
+  <h1>Debian 10 Root on Encrypted ZFS</h1>
+  <h1 id="motivation">Motivation</h1>
+<p>Why would you want to use ZFS as your root filesystem?</p>
+<ul>
+<li>Snapshots and rollbacks</li>
+<li>Send incremental snapshots over the network</li>
+<li>Datasets (i.e. /home, /var, /tmp)</li>
+<li>Copy-on-write architecture</li>
+<li>Compression to save space</li>
+<li>Checksums for data integrity, auto-repair</li>
+<li>Built-in native encryption</li>
+<li>Flexible configuration per dataset</li>
+</ul>
+<h1 id="context">Context</h1>
+<p>ZFS is awesome, why isn&rsquo;t it the default filesystem? Well, it mainly stems from
+one thing, and that&rsquo;s licensing. ZFS is licensed under the CDDL, and the Linux
+kenrel is licensed under the GPL. They&rsquo;re incompatible licenses, so generally
+distributions don&rsquo;t ship them together. This is why ZFS doesn&rsquo;t have mainstream
+adoption across Linux.</p>
+<p>Debian ships DKMS packages of the ZFS kernel modules, meaning that they&rsquo;re
+dyanmically compiled for your kernel at install time. This avoids the licensing
+issue that came with ZFS.</p>
+<p>Some distributions, such as Ubuntu are going as far as to ship ZFS without DKMS,
+even enabling it by default. They believe it is
+<a href="https://ubuntu.com/blog/zfs-licensing-and-linux">fine to ship</a>. This is good,
+and the future for ZFS is looking good. ZFS should become more common over the
+coming years and hopefully more people try it out.</p>
+<h1 id="preparation">Preparation</h1>
+<p>You&rsquo;ll need a system to install from. Any Linux distribution that supports ZFS
+will work for this. I suggest using <a href="https://alpinelinux.org">Alpine</a> because
+of it&rsquo;s small size and simplicity. Make sure to download the &ldquo;extended&rdquo; image
+under the downloads page, you&rsquo;ll need it for ZFS.</p>
+<h1 id="installation">Installation</h1>
+<ol>
+<li>
+<p>Login as <code>root</code></p>
+</li>
+<li>
+<p>Setup network connection</p>
+</li>
+</ol>
+<pre><code>ip link set eth0 up
+udhcpc -i eth0
+</code></pre><ol start="3">
+<li>Setup package manager</li>
+</ol>
+<pre><code>setup-apkrepos -1
+apk upgrade
+</code></pre><ol start="4">
+<li>Install tools and load the ZFS kernel module</li>
+</ol>
+<pre><code>apk add zfs util-linux dosfstools debootstrap
+modprobe zfs
+</code></pre><ol start="5">
+<li>Identify the target disk to install to</li>
+</ol>
+<pre><code>ls -l /dev/disk/by-id
+</code></pre><p>You&rsquo;ll see something like this:</p>
+<pre><code>ata-WDC_WD10EZEX-00RKKA0_WD-WMC1S6721017 -&gt; ../../sda
+nvme-eui.0000000001000000e4d25c5582715101 -&gt; ../../nvme0n1
+nvme-eui.0000000001000000e4d25c5582715101-part1 -&gt; ../../nvme0n1p1
+nvme-eui.0000000001000000e4d25c5582715101-part2 -&gt; ../../nvme0n1p2
+nvme-INTEL_SSDPEKNW010T8_BTNH93852L1J1P0B -&gt; ../../nvme0n1
+nvme-INTEL_SSDPEKNW010T8_BTNH93852L1J1P0B-part1 -&gt; ../../nvme0n1p1
+nvme-INTEL_SSDPEKNW010T8_BTNH93852L1J1P0B-part2 -&gt; ../../nvme0n1p2
+wwn-0x50014ee0ae51230a -&gt; ../../sda
+</code></pre><p>To look at the partitions and size of a drive, we can use <code>fdisk</code>. Replace
+<code>nvme0n1</code> with the name that the symlink above points to.</p>
+<pre><code>fdisk -l /dev/sda
+</code></pre><ol start="6">
+<li>Partition the drive</li>
+</ol>
+<p>We&rsquo;ll be using <code>fdisk</code> but feel free to use whatever you like.</p>
+<pre><code>fdisk /dev/sda
+</code></pre><p>First, we create a new GPT partition table.</p>
+<pre><code>Command (m for help): g
+Created a new GPT disklabel (GUID: C9D0492C-81C5-844B-8D73-FA530B1F66DE).
+</code></pre><p>For systems without UEFI, we create a partition for the bootloader.</p>
+<pre><code>Command (m for help): n 
+Partition number (1-128, default 1): 
+First sector (2048-1953516877, default 2048): 
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-1953516877, default 1953516877): +1000K
+
+Created a new partition 1 of type 'Linux filesystem' and of size 1 MiB.
+
+Command (m for help): t
+
+Selected partition 1
+Partition type or alias (type L to list all): 4
+Changed type of partition 'EFI System' to 'BIOS boot'.
+</code></pre><p>For systems with UEFI, we create an EFI partition for the bootloader.</p>
+<pre><code>Command (m for help): n
+Partition number (1-128, default 1): 
+First sector (2048-1953516877, default 2048): 
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-1953516877, default 1953516877): +100M
+
+Created a new partition 1 of type 'Linux filesystem' and of size 100 MiB.
+
+Command (m for help): t
+Selected partition 1
+Partition type or alias (type L to list all): 1
+Changed type of partition 'Linux filesystem' to 'EFI System'.
+</code></pre><p>Now, we create the <code>/boot</code> partition that will store our kernel, initrd,
+and bootloader configuration.</p>
+<pre><code>Command (m for help): n
+Partition number (2-128, default 2): 
+First sector (206848-1953516877, default 206848): 
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (206848-1953516877, default 1953516877): +512M
+
+Created a new partition 2 of type 'Linux filesystem' and of size 512 MiB.
+</code></pre><p>Finally, we create our partition for ZFS.</p>
+<pre><code>Command (m for help): n
+Partition number (3-128, default 3): 
+First sector (1255424-1953516877, default 1255424): 
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (1255424-1953516877, default 1953516877): 
+
+Created a new partition 3 of type 'Linux filesystem' and of size 930.9 GiB.
+</code></pre><p>To finish it off, we write our changes to the disk.</p>
+<pre><code>Command (m for help): w
+The partition table has been altered.
+Calling ioctl() to re-read partition table.
+Syncing disks.
+</code></pre><ol start="7">
+<li>Create the ZFS pool</li>
+</ol>
+<pre><code>zpool create \
+    -R /mnt \
+    -O canmount=off \
+    -O mountpoint=none \
+    -O encryption=aes-256-gcm \
+    -O keyformat=passphrase \
+    -O compression=lz4 \
+    -O acltype=posixacl \
+    -O atime=off \
+    tank /dev/disk/by-id/&lt;your disk here&gt;-part3
+</code></pre><ol start="8">
+<li>Create the ZFS datasets</li>
+</ol>
+<p>My configuration is just a matter of personal preference, you can/should change
+this to fit your needs. I create datasets for /, and then more datasets for
+things where I want to tweak ZFS&rsquo;s behavior.</p>
+<pre><code>zfs create -o mountpoint=/ tank/root
+zfs create -o mountpoint=/home tank/home
+zfs create -o mountpoint=/usr tank/root/usr
+zfs create -o mountpoint=/opt tank/root/opt
+zfs create -o mountpoint=/srv tank/root/srv
+zfs create -o mountpoint=/var tank/root/var
+zfs create -o mountpoint=/var/lib tank/root/var/lib
+zfs create -o compression=zle -o com.sun:auto-snapshot=off -V 8G tank/swap
+zfs create -o mountpoint=/root -o com.sun:auto-snapshot=off tank/root/root
+zfs create -o mountpoint=/usr/local -o com.sun:auto-snapshot=off tank/root/usr/local
+zfs create -o mountpoint=/var/log -o com.sun:auto-snapshot=off tank/root/var/log
+zfs create -o mountpoint=/var/tmp -o com.sun:auto-snapshot=off tank/root/var/tmp
+zfs create -o mountpoint=/var/mail -o com.sun:auto-snapshot=off tank/root/var/mail
+zfs create -o mountpoint=/var/spool -o com.sun:auto-snapshot=off tank/root/var/spool
+zfs create -o mountpoint=/var/cache -o com.sun:auto-snapshot=off tank/root/var/cache
+zfs create -o mountpoint=/tmp -o com.sun:auto-snapshot=off tank/root/tmp
+</code></pre><p>If you opted for a swap partition, set it up.</p>
+<pre><code>mkswap /dev/zvol/tank/swap &amp;&amp; swapon $_
+</code></pre><p>Here&rsquo;s some other common datasets you may want to create.</p>
+<pre><code>zfs create -o mountpoint=/var/lib/docker -o com.sun:auto-snapshot=off tank/docker
+zfs create -o mountpoint=/var/lib/libvirt -o com.sun:auto-snapshot=off tank/libvirt
+</code></pre><ol start="9">
+<li>Set up /boot partition</li>
+</ol>
+<pre><code>mkfs.ext4 /dev/sda2
+mkdir -p /mnt/boot
+mount -t ext4 /dev/sda2 /mnt/boot
+</code></pre><ol start="10">
+<li>Install packages</li>
+</ol>
+<p>I opted to install Debian unstable (<code>sid</code>), but you can swap that our for
+<code>buster</code> which is the current stable branch, or <code>bullseye</code> for the testing
+branch.</p>
+<pre><code>debootstrap --arch=amd64 sid /mnt http://deb.debian.org/debian
+</code></pre><p>Because of ZFS&rsquo;s license, Debian only includes it in the <code>non-free</code> package
+repositories. So, we must edit APT&rsquo;s sources file to use that repository.</p>
+<pre><code>vi /mnt/etc/apt/sources.list
+</code></pre><p>Make sure the line that ends with <code>main</code> now has the repositories
+<code>main contrib non-free</code> at the end of it.</p>
+<ol start="11">
+<li>Configure the system</li>
+</ol>
+<p>First we must mount /dev, /sys, and /proc, then copy /etc/resolv.conf so our
+DNS will resolve properly. We also add our /boot partition to our fstab. Then
+we use <code>chroot</code> to get a shell in the new system.</p>
+<pre><code>for i in dev sys proc; do mount /$i /mnt/$i; done
+cp /etc/resolv.conf /mnt/etc
+echo &quot;/dev/sda2 /boot ext4 rw,noatime 0 1&quot; &gt;&gt; /mnt/etc/fstab
+chroot /mnt /bin/bash
+</code></pre><p>Once we have a shell, we still have some packages to install and some
+configuration to do before we can successfully boot for the first time.</p>
+<p>First, we install some packages. We install the kernel, kernel headers, a
+compiler for the ZFS DKMS module, ZFS utilities for our initramfs, the GRUB 2
+bootloader for booting our system, and some other important stuff.</p>
+<pre><code>apt update
+apt install -yq --no-install-recommends \
+    linux-image-amd64 \
+    linux-headers-amd64 \
+    build-essential \
+    zfs-dkms \
+    zfs-initramfs \
+    grub2-common \
+    grub-pc-bin \
+    grub-efi-amd64-bin \
+    locales \
+    tzdata \
+    network-manager \
+    sudo
+</code></pre><p>For legacy/BIOS boot systems, configure the bootloader as such:</p>
+<pre><code>grub-install --target=i386-pc --force /dev/sda1
+</code></pre><p>For UEFI-based systems, configure the bootloader as such:</p>
+<pre><code>mkdir -p /boot/efi
+mkfs.vfat -F 32 /dev/sda1
+mount -t vfat /dev/sda1 /boot/efi
+echo &quot;/dev/sda1 /boot/efi vfat rw,noatime,umask=077 0 1&quot; &gt;&gt; /etc/fstab
+grub-install --target=x86_64-pc --force --efi-directory=/boot/efi
+</code></pre><p>Now, update the initramfs and bootloader configuration.</p>
+<pre><code>update-initramfs -u -k all
+update-grub
+</code></pre><p>To finish up, set up the system&rsquo;s locale, timezone, and create a user account
+that will be able to use <code>sudo</code>.</p>
+<pre><code>dpkg-reconfigure locales
+dpkg-reconfigure tzdata
+useradd -m -G audio,video,input,sudo &lt;username&gt;
+passwd &lt;username&gt;
+</code></pre><p>Now, exit the chroot.</p>
+<pre><code>exit
+</code></pre><ol start="12">
+<li>Cleaning up</li>
+</ol>
+<p>Now that we have finished our install, it is time to unmount everything and
+reboot the system.</p>
+<pre><code>for i in dev sys proc boot/efi boot; do umount /mnt/$i; done
+zpool export tank
+sync
+reboot -f
+</code></pre><ol start="12">
+<li>First boot</li>
+</ol>
+<p>The first time the system boots, it may say something along the lines of &ldquo;error
+importing ZFS pool, import manually&rdquo;. This is normal on the first boot. Just
+import the pool manually. This issue arises because of machine IDs, notice the
+<code>-f</code> bypasses this issue and resets the ID.</p>
+<pre><code>zpool import -f tank
+</code></pre><p>Once done, press Control+D or type <code>exit</code> to continue boot as usual.</p>
+<h1 id="resources">Resources</h1>
+<p>If you want to get the most out of ZFS, take the time to read the documentation
+and learn how to manage and administer your new filesystem. There&rsquo;s some quite
+powerful &amp; useful things you can do.</p>
+<ul>
+<li><a href="https://openzfs.github.io/openzfs-docs/">OpenZFS Docs</a></li>
+<li><a href="https://wiki.debian.org/ZFS">Debian&rsquo;s ZFS Docs</a></li>
+</ul>
+
+</div>
+
+
+  </body>
+</html>

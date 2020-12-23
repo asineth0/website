@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+      integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+      crossorigin="anonymous"
+    />
+    
+    <link rel="stylesheet" href="https://asineth.me/style.css" />
+    <title>Unofficial ROMs for Moto G8/G8 Power</title>
+  </head>
+  <body>
+    <div class="header">
+  
+  <img src="https://asineth.me/avatar.jpg" />
+  <h1>Asineth</h1>
+  <h2>Developer & tinkerer.</h2>
+  <div class="social">
+    <a class="fab fa-github" href="//github.com/asineth0"></a>
+    <a class="fab fa-reddit" href="//reddit.com/u/asineth0"></a>
+    <a class="fab fa-telegram" href="//t.me/asineth0"></a>
+    <a class="fab fa-twitter" href="//twitter.com/asineth0"></a>
+    <a class="fas fa-envelope" href="mailto:asineth@pm.me"></a>
+  </div>
+</div>
+ 
+
+<div class="content">
+  <h1>Unofficial ROMs for Moto G8/G8 Power</h1>
+  <h1 id="status">Status</h1>
+<p>Both ROMs are currently very stable and I&rsquo;ve used them for multiple hours with
+minimal or no issues. I may port Bliss or some other ROMs later.</p>
+<h1 id="downloads">Downloads</h1>
+<p>Last updated: 2020.09.17 @ 21:55 EDT</p>
+<ul>
+<li>lineage-17.1-20200918-UNOFFICIAL-sofiar.zip
+<a href="https://mega.nz/file/bAYlHQ5J#CsB51snT_u3rb5FyyPaKiublgO1xW5LfeUj9_xNGHbw">MEGA</a>
+<a href="https://u.pcloud.link/publink/show?code=XZVJB5XZDaPlYbJPQLzmF0wvvgCo10DhMh77">pCloud</a></li>
+</ul>
+<p>SHA256: ba7445fbadada6edbe12b55ecfce0d4bd2a7ca1b407a5f0a44a42b8e2eb27e99</p>
+<ul>
+<li>PixelExperience_Plus_sofiar-10.0-20200918-0058-UNOFFICIAL.zip
+<a href="https://mega.nz/file/SdJ2XA6S#Ambrl7vXE2g4WmuMATztqoetatjZ5WjRItc9YvIWuWw">MEGA</a>
+<a href="https://u.pcloud.link/publink/show?code=XZf6f5XZU9UqeNInhMkCX8K08ixHbFgT0PDk">pCloud</a></li>
+</ul>
+<p>SHA256: 6e6a3f050e3bf8227abf5d46a616d772515884d1c2b6256777f51518158877cb</p>
+<h1 id="flashing">Flashing</h1>
+<ol>
+<li>Unlock bootloader</li>
+</ol>
+<p>You can unlock your bootloader at
+<a href="https://motorola-global-portal.custhelp.com/app/standalone/bootloader/unlock-your-device-a">Motorola&rsquo;s website</a>.</p>
+<ol start="2">
+<li>Boot into <code>fastbootd</code></li>
+</ol>
+<p>Reboot your device into the bootloader by holding power + volume down. Once it&rsquo;s
+detected, reboot it into <code>fastbootd</code> mode.</p>
+<pre><code>fastboot devices
+fastboot reboot fastboot
+</code></pre><p>If this fails, it&rsquo;s likely you flashed TWRP or replaced your recovery partition,
+if so, you can download the latest stock firmware for your device from
+<a href="https://mirrors.lolinet.com/firmware/moto/">Lolinet</a>. Flash the recovery.img
+like so.</p>
+<pre><code>fastboot flash recovery recovery.img
+</code></pre><p>Once flashed, boot into <code>fastbootd</code>.</p>
+<ol start="3">
+<li>Flash images</li>
+</ol>
+<p>Download and extract the desired zip above. Change to the directory it&rsquo;s
+extracted to and flash the images to the device as so. Once done, we wipe the
+phone&rsquo;s <code>userdata</code> partition.</p>
+<pre><code>fastboot set_active a
+fastboot flash boot boot.img
+fastboot flash system system.img
+fastboot flash product product.img
+fastboot flash vbmeta vbmeta.img
+fastboot -w
+</code></pre><ol start="4">
+<li>Flash Magisk &amp; GApps (optional)</li>
+</ol>
+<p><strong>Pixel Experience has GApps built in.</strong></p>
+<p>If at this stage, you may want to flash Magisk for root, or GApps to access the
+Play Store. To do so, download
+<a href="https://mega.nz/file/jVZjCaKK#OdCGje8Qs2z49tmpyqxsx17iOQigDxPXg1Ssa9-z84k">TWRP</a>
+and temporarily boot your device with it. Do not flash it to the recovery
+partition, as you will lose <code>fastbootd</code>.</p>
+<pre><code>fastboot boot twrp-3.4.0-0-rav-test6.img
+</code></pre><p>Once TWRP is booted, push the ZIPs to /sdcard.</p>
+<pre><code>adb push Magisk-v20.4.zip /sdcard
+adb push open_gapps-arm64-10.0-pico-20200912.zip /sdcard
+</code></pre><p>After that, proceed to flash them as you usually would in TWRP.</p>
+<ol start="5">
+<li>Reboot device into LineageOS</li>
+</ol>
+<pre><code>fastboot reboot
+</code></pre><ol start="6">
+<li>Enable Rav overlay (Moto G8/G Fast only)</li>
+</ol>
+<p>Enable USB debugging in developer options first. This is needed to have the
+notch behave properly. This will be fixed in a future update.</p>
+<pre><code>adb shell cmd overlay enable org.omnirom.overlay.moto.rav
+</code></pre><h1 id="working">Working</h1>
+<p>Tested on a Moto G Fast from Amazon US.</p>
+<ul>
+<li>Display</li>
+<li>Touchscreen</li>
+<li>Wi-Fi</li>
+<li>Bluetooth (audio as well)</li>
+<li>Headphones via 3.5mm</li>
+<li>Internal speaker</li>
+<li>Moto Actions</li>
+<li>Calls/SMS/LTE on Verizon</li>
+<li>VoLTE on Verizon</li>
+</ul>
+<h1 id="issues">Issues</h1>
+<ul>
+<li>Vibration motor is broken</li>
+<li>Stock wallpaper animation (fixed by changing it)</li>
+<li>Rav (G8/G Fast) users must enable their overlay manually</li>
+</ul>
+<h1 id="sources">Sources</h1>
+<ul>
+<li><a href="https://git.asineth.gq/android_device_motorola_sofiar">Device</a></li>
+<li><a href="https://git.asineth.gq/android_vendor_motorola_sofiar">Vendor</a></li>
+<li><a href="https://git.asineth.gq/android_kernel_motorola_trinket">Kernel</a></li>
+</ul>
+<h1 id="telegram">Telegram</h1>
+<p>https://t.me/MotoG8Official</p>
+<h1 id="credits">Credits</h1>
+<ul>
+<li>@vachounet - helped a lot, original device/vendor tree, TWRP build</li>
+<li>@kjjjnob - some LineageOS changes to @vachounet&rsquo;s tree</li>
+</ul>
+
+</div>
+
+
+  </body>
+</html>

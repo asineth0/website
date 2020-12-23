@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+      integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p"
+      crossorigin="anonymous"
+    />
+    
+    <link rel="stylesheet" href="https://asineth.me/style.css" />
+    <title>Booting a GSI on the Pixel 1/1 XL</title>
+  </head>
+  <body>
+    <div class="header">
+  
+  <img src="https://asineth.me/avatar.jpg" />
+  <h1>Asineth</h1>
+  <h2>Developer & tinkerer.</h2>
+  <div class="social">
+    <a class="fab fa-github" href="//github.com/asineth0"></a>
+    <a class="fab fa-reddit" href="//reddit.com/u/asineth0"></a>
+    <a class="fab fa-telegram" href="//t.me/asineth0"></a>
+    <a class="fab fa-twitter" href="//twitter.com/asineth0"></a>
+    <a class="fas fa-envelope" href="mailto:asineth@pm.me"></a>
+  </div>
+</div>
+ 
+
+<div class="content">
+  <h1>Booting a GSI on the Pixel 1/1 XL</h1>
+  <h1 id="requirements">Requirements</h1>
+<ul>
+<li>Google Pixel 1/1 XL (sailfish/marlin)</li>
+<li>A GSI system.img to flash</li>
+<li><a href="https://developer.android.com/studio/releases/platform-tools">ADB &amp; Fastboot</a> on your PC</li>
+<li><a href="https://twrp.me/Devices/">TWRP</a> for your device</li>
+</ul>
+<h1 id="getting-a-gsi">Getting a GSI</h1>
+<p>There are tons of different GSIs to try out. I used the Google one.</p>
+<ul>
+<li><a href="https://ci.android.com/builds/submitted/6704824/aosp_arm64_ab-userdebug/latest/aosp_arm64_ab-img-6704824.zip">Google&rsquo;s Android 10 GSI</a></li>
+<li><a href="https://dl.google.com/developers/android/rvc/images/gsi/aosp_arm64-exp-RPB2.200611.012-6677315.zip">Google&rsquo;s Android 11 GSI</a></li>
+<li><a href="https://github.com/phhusson/treble_experimentations/releases/download/v221/system-quack-arm64-ab-vanilla.img.xz">phhTreble Android 10</a></li>
+<li><a href="https://github.com/phhusson/treble_experimentations/releases/download/v221/system-quack-arm64-ab-gapps.img.xz">phhTreble Android 10 + GApps</a></li>
+<li><a href="https://github.com/phhusson/treble_experimentations/releases/download/v221/system-quack-arm64-ab-go.img.xz">phhTreble Android 10 + &ldquo;Go&rdquo; Gapps</a></li>
+</ul>
+<h1 id="preparing-the-device">Preparing the device</h1>
+<p>The <code>system_a</code> and <code>system_b</code> partitions on the Pixel are too small for the
+GSI. Therefore, we must resize them.</p>
+<ol>
+<li>Put the device into bootloader mode.</li>
+</ol>
+<p>This is done with power + volume down.</p>
+<ol start="2">
+<li>Boot TWRP on the device.</li>
+</ol>
+<p>Open up a terminal and use <code>fastboot</code> to boot the TWRP image on the phone.</p>
+<pre><code>fastboot boot twrp-3.4.0-0-marlin.img
+</code></pre><ol start="3">
+<li>Backup the GPT</li>
+</ol>
+<p>The partition table on the phone is called the GPT and it is a good idea to
+back this up in case you mess anything up later on.</p>
+<pre><code>adb shell sgdisk --backup=/data/gpt.bin /dev/block/sda
+adb pull /data/gpt.bin .
+</code></pre><ol start="4">
+<li>Resize the partitions</li>
+</ol>
+<p>Now we delete the systen &amp; userdata partitions and resize them.</p>
+<h2 id="25-gb-system-a--b-recommended">2.5 GB System A &amp; B (recommended)</h2>
+<p>This is the configuration I used.</p>
+<pre><code>adb shell sgdisk --delete=33 /dev/block/sda
+adb shell sgdisk --delete=34 /dev/block/sda
+adb shell sgdisk --delete=35 /dev/block/sda
+adb shell sgdisk --new=33::+2560M --change-name=33:system_a /dev/block/sda
+adb shell sgdisk --new=34::+2560M --change-name=34:system_b /dev/block/sda
+adb shell sgdisk --new=35:: --change-name=35:userdata /dev/block/sda
+</code></pre><h2 id="25-gb-system-a--empty-b-partition">2.5 GB System A &amp; empty B partition</h2>
+<p>If you insist on saving space and don&rsquo;t want to use OTA updates, you can just
+resize the <code>system_b</code> partition to 1KB. I&rsquo;ve tested this but it&rsquo;s a little
+risky.</p>
+<pre><code>adb shell sgdisk --delete=33 /dev/block/sda
+adb shell sgdisk --delete=34 /dev/block/sda
+adb shell sgdisk --delete=35 /dev/block/sda
+adb shell sgdisk --new=33::+2560M --change-name=33:system_a /dev/block/sda
+adb shell sgdisk --new=34::+1K --change-name=34:system_b /dev/block/sda
+adb shell sgdisk --new=35:: --change-name=35:userdata /dev/block/sda
+</code></pre><h2 id="2-gb-system-a--b-stock">2 GB System A &amp; B (stock)</h2>
+<p>If you ever want to revert back to stock, this is what you&rsquo;d do.</p>
+<pre><code>adb shell sgdisk --delete=33 /dev/block/sda
+adb shell sgdisk --delete=34 /dev/block/sda
+adb shell sgdisk --delete=35 /dev/block/sda
+adb shell sgdisk --new=33::+2G --change-name=33:system_a /dev/block/sda
+adb shell sgdisk --new=34::+2G --change-name=34:system_b /dev/block/sda
+adb shell sgdisk --new=35:: --change-name=35:userdata /dev/block/sda
+</code></pre><ol start="5">
+<li>Format the /data partition</li>
+</ol>
+<p>It&rsquo;s a good idea to format the <code>userdata</code> partition now.</p>
+<pre><code># sometimes TWRP mounts these
+adb shell umount /data
+adb shell umount /sdcard
+adb shell mke2fs /dev/block/sda35
+adb shell mount -t ext4 /dev/block/sda35 /data
+</code></pre><h1 id="flashing-the-gsi">Flashing the GSI</h1>
+<ol>
+<li>Flash the system partition</li>
+</ol>
+<p>Now, we push the system.img to the device and write it to the <code>system_a</code>
+partition. Even if you opted to keep the <code>system_b</code> partition, do not write
+it to the other partition yet.</p>
+<pre><code>adb push system.img /data/system.img
+adb shell dd if=/data/system.img of=/dev/block/sda33
+adb shell rm -f /data/system.img
+</code></pre><ol start="2">
+<li>Resize filesystem to partition</li>
+</ol>
+<p>To finish up, we run a filesystem check and then resize the image to the full
+size of the partition.</p>
+<pre><code>adb shell e2fsck /dev/block/sda33 -fy
+adb shell resize2fs /dev/block/sda33
+</code></pre><h1 id="finishing-up">Finishing up</h1>
+<ol>
+<li>Mount the system partition</li>
+</ol>
+<p>Now we mount the <code>system_a</code> partition.</p>
+<pre><code>adb shell mount /dev/block/sda33 /system_root
+</code></pre><ol start="2">
+<li>Extract libraries from factory image</li>
+</ol>
+<p>The GSI will fail to boot if we don&rsquo;t manually add some libraries to the
+<code>system_a</code> partition. We can do this by extracting them from the factory
+image from Google for the phone. You can get that image
+<a href="https://developers.google.com/android/images">here</a>.</p>
+<p>Once you have the image downloaded, extract the zip. Inside there will be
+another zip called <code>image-XXXXXX-qp1a.191005.007.a3.zip</code> or similar. Extract
+that as well. Now you should have a system.img file. Now we must extract that.</p>
+<p>I opted to use p7zip, although you could simply mount it or use something else,
+I was having issues mounting it.</p>
+<pre><code>7z x system.img -o out
+</code></pre><ol start="3">
+<li>Transfer libraries to device</li>
+</ol>
+<p>Now we transfer the libraries we extracted, to the device</p>
+<pre><code>cd out/system
+adb push lib/android.hardware.audio.common-util.so /system/lib/vndk-29
+adb push lib/android.hardware.audio.common@5.0-util.so /system/lib/vndk-29
+adb push lib/libeffectsconfig.so /system/lib/vndk-29
+adb push lib64/vendor.qti.qcril.am@1.0.so /system/lib64/vndk-29
+</code></pre><p>Once the files are copied, we must fix their permissions.</p>
+<pre><code>for i in \
+    lib/vndk-29/android.hardware.audio.common-util.so \
+    lib/vndk-29/android.hardware.audio.common@5.0-util.so \
+    lib/vndk-29/libeffectsconfig.so \
+    lib64/vndk-29/vendor.qti.qcril.am@1.0.so; do
+    adb shell chcon u:object_r:system_lib_file:s0 &quot;/system/$i&quot;
+done
+</code></pre><p>If you opted to keep the <code>system_b</code> partition, now you copy the contents
+of the <code>system_a</code> partition over to the other.</p>
+<pre><code>adb shell umount /system_root
+adb shell dd if=/dev/block/sda33 of=/dev/block/sda34
+</code></pre><ol start="4">
+<li>Copy ADB key to device</li>
+</ol>
+<p>Now, we copy the ADB public key for the PC to the device so that we can get
+output from the device while it&rsquo;s booting for debugging, as well as getting a
+shell if we need to.</p>
+<pre><code>adb shell mkdir -p /data/misc/adb
+adb push ~/.android/adbkey.pub /data/misc/adb/adb_keys
+</code></pre><ol start="5">
+<li>Reboot into Android</li>
+</ol>
+<p>Now we just tell the device to reboot through ADB.</p>
+<pre><code>adb reboot
+</code></pre><h1 id="credits">Credits</h1>
+<ul>
+<li>
+<p><a href="https://github.com/phhusson/treble_experimentations/issues/1196">WaseemAlkurdi</a>
+GitHub issue on the missing libraries, general help</p>
+</li>
+<li>
+<p><a href="https://forum.xda-developers.com/pixel-xl/how-to/guide-expand-partition-pixel-xl-pixel-t4097839">Wonderlooo</a>
+XDA post on resizing the system partitions</p>
+</li>
+</ul>
+
+</div>
+
+
+  </body>
+</html>

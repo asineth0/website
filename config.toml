@@ -1,0 +1,4 @@
+baseURL = "https://asineth.me"
+languageCode = "en-us"
+title = "Asineth"
+pygmentsUseClasses = true
